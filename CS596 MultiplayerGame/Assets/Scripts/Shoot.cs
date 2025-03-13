@@ -43,7 +43,14 @@ public class Shoot : MonoBehaviour
         if (Input.GetMouseButton(0) && canFire)
         {
             canFire = false;
-            Instantiate(bullet, bulletTransform.position, Quaternion.identity);
+            GameObject newBullet = Instantiate(bullet, bulletTransform.position, Quaternion.identity);
+            
+            // Get colliders for the bullet and the player
+            Collider2D bulletCollider = newBullet.GetComponent<Collider2D>();
+            Collider2D playerCollider = GetComponent<Collider2D>();
+            
+            // Ignore collisions between the bullet and the player
+            Physics2D.IgnoreCollision(bulletCollider, playerCollider);
         }
     }
 }

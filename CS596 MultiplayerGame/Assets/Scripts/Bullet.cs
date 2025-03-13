@@ -8,7 +8,7 @@ public class Bullet : MonoBehaviour
     private Camera mainCam;
     private Rigidbody2D rb;
     public float force;
-
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -24,5 +24,13 @@ public class Bullet : MonoBehaviour
     void OnBecameInvisible()
     {
         Destroy(gameObject);
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Ground")) // Check if the object is the ground
+        {
+            Destroy(gameObject); // Destroy the bullet on impact
+        }
     }
 }

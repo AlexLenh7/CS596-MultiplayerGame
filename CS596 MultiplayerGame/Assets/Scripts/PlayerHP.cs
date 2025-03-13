@@ -39,7 +39,7 @@ public class PlayerHP : MonoBehaviour
         }
     }
 
-    void Die()
+    public void Die()
     {
         Debug.Log("Player has died!");
         Destroy(gameObject); // Destroy player (You can replace this with a game over screen)
