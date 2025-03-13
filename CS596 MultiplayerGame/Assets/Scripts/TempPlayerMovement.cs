@@ -1,7 +1,6 @@
 using UnityEngine;
-using Unity.Netcode;
 
-public class PlayerMovement : NetworkBehaviour
+public class TempPlayerMovement : MonoBehaviour
 {
     public float speed = 5f;
     public float jumpForce = 10f;
@@ -9,7 +8,6 @@ public class PlayerMovement : NetworkBehaviour
     private bool isGrounded;
     private bool canDoubleJump; 
     private Collider2D playerCollider;
-
 
     void Start()
     {
@@ -19,14 +17,14 @@ public class PlayerMovement : NetworkBehaviour
 
     void Update()
     {
-        if (!IsOwner) return;
-
-        // Get horizontal movement
-        float move = Input.GetAxis("Horizontal");
+        // Get horizontal movement using arrow keys
+        float move = 0f;
+        if (Input.GetKey(KeyCode.LeftArrow)) move = -1f;
+        if (Input.GetKey(KeyCode.RightArrow)) move = 1f;
         rb.velocity = new Vector2(move * speed, rb.velocity.y);
 
         // Double Jumping logic             
-        if (Input.GetButtonDown("Jump"))
+        if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             if (isGrounded)
             {
@@ -39,24 +37,6 @@ public class PlayerMovement : NetworkBehaviour
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
                 canDoubleJump = false;
             }
-        }
-    }
-
-    // Check if player is on the ground
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-        }
-    }
-
-    // Check if player leaves the ground
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = false;
         }
     }
 }
