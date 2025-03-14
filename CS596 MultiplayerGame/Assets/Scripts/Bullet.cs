@@ -1,36 +1,74 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Bullet : MonoBehaviour
+public class Bullet : NetworkBehaviour
 {
-    private Vector3 mousePos;
-    private Camera mainCam;
-    private Rigidbody2D rb;
-    public float force;
+    public float force = 20f;
+    [HideInInspector]
+    public ulong shooterClientId;
     
-    // Start is called before the first frame update
-    void Start()
+    private Rigidbody2D rb;
+    
+    // Network variable to sync position
+    private NetworkVariable<Vector3> netPosition = new NetworkVariable<Vector3>();
+    // Network variable to sync rotation
+    private NetworkVariable<Quaternion> netRotation = new NetworkVariable<Quaternion>();
+    
+    public override void OnNetworkSpawn()
     {
-        mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         rb = GetComponent<Rigidbody2D>();
-        mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
-        Vector3 direction = mousePos - transform.position;
-        Vector3 rotation = transform.position - mousePos;
-        rb.velocity = new Vector2(direction.x, direction.y).normalized * force;
-        float rot = Mathf.Atan2(rotation.y, rotation.x) * Mathf.Rad2Deg;
+    }
+    
+    void Update()
+    {
+        if (IsServer)
+        {
+            // Server updates the network variables based on physics
+            netPosition.Value = transform.position;
+            netRotation.Value = transform.rotation;
+        }
+        else
+        {
+            // Clients update their transform based on network variables
+            transform.position = netPosition.Value;
+            transform.rotation = netRotation.Value;
+        }
+    }
+    
+    // This is called by the Shoot script on the server
+    public void InitializeBullet(Vector2 direction)
+    {
+        if (!IsServer) return;
+        
+        rb.linearVelocity = direction * force;
+        
+        // Set rotation based on direction
+        float rot = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, 0, rot);
     }
+    
     void OnBecameInvisible()
     {
-        Destroy(gameObject);
+        // Only destroy on the server, and only if the NetworkObject is spawned
+        if (IsServer && IsSpawned)
+        {
+            NetworkObject.Despawn();
+        }
     }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Ground")) // Check if the object is the ground
+        // Only let the server handle collision
+        if (!IsServer) return;
+        
+        if (collision.CompareTag("Ground") || collision.CompareTag("Player"))
         {
-            Destroy(gameObject); // Destroy the bullet on impact
+            if (IsSpawned)
+            {
+                NetworkObject.Despawn();
+            }
         }
     }
 }

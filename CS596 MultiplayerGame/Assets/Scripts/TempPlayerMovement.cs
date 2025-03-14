@@ -21,20 +21,20 @@ public class TempPlayerMovement : MonoBehaviour
         float move = 0f;
         if (Input.GetKey(KeyCode.LeftArrow)) move = -1f;
         if (Input.GetKey(KeyCode.RightArrow)) move = 1f;
-        rb.velocity = new Vector2(move * speed, rb.velocity.y);
+        rb.linearVelocity = new Vector2(move * speed, rb.linearVelocity.y);
 
         // Double Jumping logic             
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             if (isGrounded)
             {
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
                 isGrounded = false;
                 canDoubleJump = true;
             }
             else if (canDoubleJump)
             {
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
                 canDoubleJump = false;
             }
         }

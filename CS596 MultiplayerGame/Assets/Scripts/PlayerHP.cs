@@ -1,47 +1,82 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
 
-public class PlayerHP : MonoBehaviour
+public class PlayerHP : NetworkBehaviour
 {
-    public float maxHealth;
-    public Image healthBar;
-    public float health;
-
+    public NetworkVariable<float> maxHealth = new NetworkVariable<float>(
+        100f, 
+        NetworkVariableReadPermission.Everyone, 
+        NetworkVariableWritePermission.Server);
+    
+    public NetworkVariable<float> health = new NetworkVariable<float>(
+        100f, 
+        NetworkVariableReadPermission.Everyone, 
+        NetworkVariableWritePermission.Server);
+    
+    [SerializeField] private Image healthBar;
+    
     void Start()
     {
-        maxHealth = health;
-    }
-
-    void Update()
-    {
-        healthBar.fillAmount = Mathf.Clamp(health/maxHealth, 0, 1);
-    }
-
-    void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Bullet")) // Check if the object is a bullet
+        if (IsServer)
         {
-            TakeDamage();
-            Destroy(collision.gameObject); // Destroy the bullet on impact
+            health.Value = maxHealth.Value;
+        }
+        
+        health.OnValueChanged += OnHealthChanged;
+    }
+    
+    void OnDestroy()
+    {
+        health.OnValueChanged -= OnHealthChanged;
+    }
+    
+    private void OnHealthChanged(float previousValue, float newValue)
+    {
+        UpdateHealthBar();
+    }
+    
+    private void UpdateHealthBar()
+    {
+        if (healthBar != null)
+        {
+            healthBar.fillAmount = Mathf.Clamp(health.Value / maxHealth.Value, 0, 1);
         }
     }
-
-    void TakeDamage()
+    
+    void OnTriggerEnter2D(Collider2D collision)
     {
-        health--; // Reduce life by 1
-        Debug.Log("Player hit! Lives remaining: " + health);
-
-        if (health <= 0)
+        // Let only the server process damage
+        if (!IsServer) return;
+        
+        if (collision.CompareTag("Bullet"))
+        {
+            TakeDamage();
+        }
+    }
+    
+    public void TakeDamage()
+    {
+        // Server-only method
+        if (!IsServer) return;
+        
+        health.Value -= 1;
+        Debug.Log("Player hit! Lives remaining: " + health.Value);
+        if (health.Value <= 0)
         {
             Die();
         }
     }
-
+    
     public void Die()
     {
         Debug.Log("Player has died!");
-        Destroy(gameObject); // Destroy player (You can replace this with a game over screen)
+        
+        if (IsServer)
+        {
+            // Consider respawning players instead of despawning
+            // For now, just destroy
+            NetworkObject.Despawn();
+        }
     }
 }

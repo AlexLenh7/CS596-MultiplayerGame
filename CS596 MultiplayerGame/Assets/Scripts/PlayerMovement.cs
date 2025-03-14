@@ -23,20 +23,20 @@ public class PlayerMovement : NetworkBehaviour
 
         // Get horizontal movement
         float move = Input.GetAxis("Horizontal");
-        rb.velocity = new Vector2(move * speed, rb.velocity.y);
+        rb.linearVelocity = new Vector2(move * speed, rb.linearVelocity.y);
 
         // Double Jumping logic             
         if (Input.GetButtonDown("Jump"))
         {
             if (isGrounded)
             {
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
                 isGrounded = false;
                 canDoubleJump = true;
             }
             else if (canDoubleJump)
             {
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
                 canDoubleJump = false;
             }
         }
