@@ -12,6 +12,9 @@ public class Shoot : NetworkBehaviour
     public bool canFire;
     private float timer;
     public float timeBetweenFiring;
+    [SerializeField] public AudioClip bulletFX;
+
+    //private NetworkVariable<Transform> bulletTransform = new NetworkVariable<Transform>();
 
     void Start()
     {
@@ -25,11 +28,14 @@ public class Shoot : NetworkBehaviour
 
         mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
         mousePos.z = 0; // Ensure we're working in the 2D plane
-
+        
+        // Locally process the rotation 
         Vector3 rotation = mousePos - transform.position;
+        //Vector2 direction = (mousePos - bulletTransform.position).normalized;
         float rotZ = Mathf.Atan2(rotation.y, rotation.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, 0, rotZ);
 
+        // Check to see if player can fire
         if (!canFire)
         {
             timer += Time.deltaTime;
@@ -37,6 +43,12 @@ public class Shoot : NetworkBehaviour
             {
                 canFire = true;
                 timer = 0;
+                //if (Input.GetMouseButton(0) && canFire)
+                //{
+                //    // Obtain the direction 
+                //    Vector2 direction = (mousePos - bulletTransform.Value.position).normalized;
+                //    ShootServerRpc(bulletTransform.Value.position, direction);
+                //}
             }
         }
 
@@ -49,34 +61,14 @@ public class Shoot : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
-    void ShootServerRpc(Vector3 spawnPos, Vector2 direction)
+    [Rpc(SendTo.Server)]
+    void ShootServerRpc(Vector2 spawnPos, Vector2 direction)
     {
-        // Server spawns the bullet
         GameObject bulletObj = Instantiate(bullet, spawnPos, Quaternion.identity);
-        
-        // Get the NetworkObject component
-        NetworkObject netObj = bulletObj.GetComponent<NetworkObject>();
-        if (netObj == null)
-        {
-            Debug.LogError("Bullet prefab missing NetworkObject component!");
-            Destroy(bulletObj);
-            return;
-        }
-        
-        // First spawn the bullet on the network
-        netObj.Spawn();
-        
-        // Initialize the bullet's movement AFTER spawning
-        Bullet bulletComponent = bulletObj.GetComponent<Bullet>();
-        if (bulletComponent != null)
-        {
-            bulletComponent.shooterClientId = OwnerClientId;
-            bulletComponent.InitializeBullet(direction);
-        }
-        else
-        {
-            Debug.LogError("Bullet prefab missing Bullet component!");
-        }
+        bulletObj.GetComponent<NetworkObject>().Spawn();
+
+        Bullet bulletComp = bulletObj.GetComponent<Bullet>();
+        bulletComp.InitializeBullet(direction);
+        SoundManager.instance.PlaySound(bulletFX, transform, .5f);
     }
 }

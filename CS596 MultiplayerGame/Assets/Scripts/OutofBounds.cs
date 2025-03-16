@@ -4,10 +4,6 @@ using UnityEngine;
 
 public class OutofBounds : MonoBehaviour
 {
-    // void Start()
-    // {
-    //     GameObject player = GetComponent<PlayerHP>();
-    // }
     private void OnTriggerExit2D(Collider2D collision) {
         if (collision.CompareTag("Player")) // Check if player enters the zone
         {

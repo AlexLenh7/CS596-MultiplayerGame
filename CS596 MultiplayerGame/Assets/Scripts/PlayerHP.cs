@@ -15,6 +15,8 @@ public class PlayerHP : NetworkBehaviour
         NetworkVariableWritePermission.Server);
     
     [SerializeField] private Image healthBar;
+    [SerializeField] public AudioClip deathFX;
+    [SerializeField] private AudioClip hurtFX;
     
     void Start()
     {
@@ -61,6 +63,7 @@ public class PlayerHP : NetworkBehaviour
         if (!IsServer) return;
         
         health.Value -= 1;
+        SoundManager.instance.PlaySound(hurtFX, transform, 1f);
         Debug.Log("Player hit! Lives remaining: " + health.Value);
         if (health.Value <= 0)
         {
@@ -77,6 +80,8 @@ public class PlayerHP : NetworkBehaviour
             // Consider respawning players instead of despawning
             // For now, just destroy
             NetworkObject.Despawn();
+            SoundManager.instance.PlaySound(deathFX, transform, 1f);
+            GameManager.Instance.OnPlayerDied(OwnerClientId);
         }
     }
 }
