@@ -14,8 +14,6 @@ public class Shoot : NetworkBehaviour
     public float timeBetweenFiring;
     [SerializeField] public AudioClip bulletFX;
 
-    //private NetworkVariable<Transform> bulletTransform = new NetworkVariable<Transform>();
-
     void Start()
     {
         mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
@@ -31,7 +29,6 @@ public class Shoot : NetworkBehaviour
         
         // Locally process the rotation 
         Vector3 rotation = mousePos - transform.position;
-        //Vector2 direction = (mousePos - bulletTransform.position).normalized;
         float rotZ = Mathf.Atan2(rotation.y, rotation.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, 0, rotZ);
 
@@ -43,15 +40,10 @@ public class Shoot : NetworkBehaviour
             {
                 canFire = true;
                 timer = 0;
-                //if (Input.GetMouseButton(0) && canFire)
-                //{
-                //    // Obtain the direction 
-                //    Vector2 direction = (mousePos - bulletTransform.Value.position).normalized;
-                //    ShootServerRpc(bulletTransform.Value.position, direction);
-                //}
             }
         }
 
+        // Locally check if player can shoot and send to server
         if (Input.GetMouseButton(0) && canFire)
         {
             canFire = false;
@@ -61,6 +53,7 @@ public class Shoot : NetworkBehaviour
         }
     }
 
+    // Instantiate the bullet and its direction to the server
     [Rpc(SendTo.Server)]
     void ShootServerRpc(Vector2 spawnPos, Vector2 direction)
     {

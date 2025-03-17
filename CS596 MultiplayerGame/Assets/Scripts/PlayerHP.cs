@@ -4,15 +4,9 @@ using Unity.Netcode;
 
 public class PlayerHP : NetworkBehaviour
 {
-    public NetworkVariable<float> maxHealth = new NetworkVariable<float>(
-        100f, 
-        NetworkVariableReadPermission.Everyone, 
-        NetworkVariableWritePermission.Server);
+    public NetworkVariable<float> maxHealth = new NetworkVariable<float>(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     
-    public NetworkVariable<float> health = new NetworkVariable<float>(
-        100f, 
-        NetworkVariableReadPermission.Everyone, 
-        NetworkVariableWritePermission.Server);
+    public NetworkVariable<float> health = new NetworkVariable<float>(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     
     [SerializeField] private Image healthBar;
     [SerializeField] public AudioClip deathFX;
@@ -38,6 +32,7 @@ public class PlayerHP : NetworkBehaviour
         UpdateHealthBar();
     }
     
+    // Update the healthbar 
     private void UpdateHealthBar()
     {
         if (healthBar != null)
@@ -46,6 +41,7 @@ public class PlayerHP : NetworkBehaviour
         }
     }
     
+    // Call TakeDamage() on collision
     void OnTriggerEnter2D(Collider2D collision)
     {
         // Let only the server process damage
@@ -57,6 +53,7 @@ public class PlayerHP : NetworkBehaviour
         }
     }
     
+    // Take damager method process only on the server
     public void TakeDamage()
     {
         // Server-only method
@@ -71,6 +68,7 @@ public class PlayerHP : NetworkBehaviour
         }
     }
     
+    // Die despawns the network object
     public void Die()
     {
         Debug.Log("Player has died!");
@@ -78,7 +76,6 @@ public class PlayerHP : NetworkBehaviour
         if (IsServer)
         {
             // Consider respawning players instead of despawning
-            // For now, just destroy
             NetworkObject.Despawn();
             SoundManager.instance.PlaySound(deathFX, transform, 1f);
             GameManager.Instance.OnPlayerDied(OwnerClientId);

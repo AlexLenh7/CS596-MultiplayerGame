@@ -20,8 +20,6 @@ public class MainMenu : MonoBehaviour
         hostButton.onClick.AddListener(HandleHostButtonClicked);
         clientButton.onClick.AddListener(HandleClientButtonClicked);
         quitButton.onClick.AddListener(HandleQuitButtonClicked);
-        //menuButtonWinner.onClick.AddListener(HandleClientMenuClicked);
-        //menuButtonLoser.onClick.AddListener(HandleClientMenuClicked);
     }
     
     private void HandleHostButtonClicked()
@@ -37,13 +35,6 @@ public class MainMenu : MonoBehaviour
         NetworkManager.Singleton.StartClient();
         menuCanvas.SetActive(false); // Disable the menu canvas after starting the client
     }
-
-    //public void HandleClientMenuClicked()
-    //{
-    //    SoundManager.instance.PlaySound(buttonFX, transform, 1f);
-    //    NetworkManager.Singleton.Shutdown();
-    //    menuCanvas.SetActive(true);
-    //}
 
     private void HandleQuitButtonClicked()
     {

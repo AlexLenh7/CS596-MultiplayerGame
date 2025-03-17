@@ -7,8 +7,6 @@ public class PlayerMovement : NetworkBehaviour
     public float speed = 5f;
     public float jumpForce = 10f;
     private Rigidbody2D rb;
-    //private bool isGrounded;
-    //private bool canDoubleJump;
     private Collider2D playerCollider;
 
     private NetworkVariable<bool> isGrounded = new NetworkVariable<bool>();
@@ -32,6 +30,7 @@ public class PlayerMovement : NetworkBehaviour
         // Get horizontal movement
         float horizontalInput = Input.GetAxis("Horizontal");
 
+        // Play footstepFX if the player is not still 
         if (horizontalInput != 0 && isGrounded.Value && !footstepSource.isPlaying)
         {
             footstepSource.Play();
@@ -40,21 +39,21 @@ public class PlayerMovement : NetworkBehaviour
         {
             footstepSource.Stop();
         }
-
-        //rb.linearVelocity = new Vector2(horizontalInput * speed, rb.linearVelocity.y);
-
+        
+        // Check to see if Jump is pressed locally
         bool jumpPressed = Input.GetButtonDown("Jump");
 
-        // Send the movement over to server
+        // Send the movement and if jumped over to server
         MovementToServerRpc(horizontalInput, jumpPressed);
     }
 
+    // Send the logic to the server
     [Rpc(SendTo.Server)]
     void MovementToServerRpc(float moveInput,  bool jumpInput)
     {
         rb.linearVelocity = new Vector2(moveInput * speed, rb.linearVelocity.y);
 
-        // double jumping logic
+        // Double jumping logic
         if (jumpInput)
         {
             if (isGrounded.Value)

@@ -20,12 +20,12 @@ public class GameManager : NetworkBehaviour
 
         if (IsServer)
         {
-            // Subscribe to the callback. This only works if the server/host is the 
-            // one that starts the game session, obviously.
+            // Subscribe to the callback
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         }
     }
 
+    // Assign the client id for each player that connects
     private void OnClientConnected(ulong clientId)
     {
         if (playerAClientId == 0)
@@ -38,6 +38,7 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    // Get the player that died
     public void OnPlayerDied(ulong loserId)
     {
         // determine using ownerid which is the winner
@@ -54,6 +55,7 @@ public class GameManager : NetworkBehaviour
         GameOverClientRpc(winnerId);
     }
 
+    // Set the winner or loser on each client
     [ClientRpc]
     private void GameOverClientRpc(ulong winnerId)
     {
